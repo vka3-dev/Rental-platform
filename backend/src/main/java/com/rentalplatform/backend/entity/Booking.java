@@ -56,4 +56,7 @@ public class Booking {
 
     @Column(name = "delivery_partner")
     private String deliveryPartner;
+
+    @Column(name = "rejection_reason")
+    private String rejectionReason;
 }

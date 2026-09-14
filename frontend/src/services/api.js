@@ -257,12 +257,22 @@ export const updateUserProfile = async (
   return response.data;
 };
 
-export const getNotifications = async () => {
+export const getNotifications = async (recipientId) => {
 
   const response = await api.get(
-    "/notifications"
+    `/notifications/recipient/${recipientId}`
   );
 
+  return response.data;
+};
+
+export const markNotificationRead = async (notificationId) => {
+  const response = await api.put(`/notifications/${notificationId}/read`);
+  return response.data;
+};
+
+export const markAllNotificationsRead = async (recipientId) => {
+  const response = await api.put(`/notifications/recipient/${recipientId}/read-all`);
   return response.data;
 };
 
@@ -273,6 +283,11 @@ export const getUserById = async (userId) => {
 
 export const getReviewsByReviewee = async (revieweeId) => {
   const response = await api.get(`/reviews/reviewee/${revieweeId}`);
+  return response.data;
+};
+
+export const getReviewsByReviewer = async (reviewerId) => {
+  const response = await api.get(`/reviews/reviewer/${reviewerId}`);
   return response.data;
 };
 export const createReturn = async (returnData) => {

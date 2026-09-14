@@ -24,6 +24,7 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
     private final ReturnRepository returnRepository;
+    private final NotificationService notificationService;
 
     public Booking createBooking(Booking booking) {
 
@@ -94,15 +95,46 @@ public class BookingService {
         booking.setStatus(status);
         Booking saved = bookingRepository.save(booking);
 
+        String itemName = booking.getItemId() != null
+                ? itemRepository.findById(booking.getItemId())
+                        .map(Item::getItemName)
+                        .orElse("this item")
+                : "this item";
+
         // If lender accepts/approves a borrow request, automatically reject all other pending requests for the same item
         if ("APPROVED".equalsIgnoreCase(status) && booking.getItemId() != null) {
             List<Booking> otherPendingBookings = bookingRepository
                     .findByItemIdAndStatusAndBookingIdNot(booking.getItemId(), "REQUESTED", booking.getBookingId());
 
+            String autoRejectReason = "Another renter's request for \"" + itemName
+                    + "\" was approved, so this request was automatically declined because the item is now rented out.";
+
             for (Booking other : otherPendingBookings) {
                 other.setStatus("REJECTED");
+                other.setRejectionReason(autoRejectReason);
                 bookingRepository.save(other);
+
+                notificationService.create(
+                        other.getRenterId(),
+                        "REQUEST_REJECTED",
+                        "Request Declined",
+                        autoRejectReason,
+                        other.getBookingId());
             }
+
+            notificationService.create(
+                    booking.getRenterId(),
+                    "REQUEST_APPROVED",
+                    "Request Approved!",
+                    "Your request for \"" + itemName + "\" has been approved by the lender.",
+                    booking.getBookingId());
+        } else if ("REJECTED".equalsIgnoreCase(status)) {
+            notificationService.create(
+                    booking.getRenterId(),
+                    "REQUEST_REJECTED",
+                    "Request Declined",
+                    "Your request for \"" + itemName + "\" was declined by the lender.",
+                    booking.getBookingId());
         }
 
         return saved;

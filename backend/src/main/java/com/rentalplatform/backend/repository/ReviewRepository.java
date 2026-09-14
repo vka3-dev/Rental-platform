@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
-    List<Review> findByRevieweeId(UUID revieweeId);
-    Optional<Review> findByBookingId(Long bookingId);
+    List<Review> findByRevieweeIdOrderByCreatedAtDesc(UUID revieweeId);
+    List<Review> findByReviewerId(UUID reviewerId);
+    Optional<Review> findByBookingIdAndReviewerId(Long bookingId, UUID reviewerId);
 }

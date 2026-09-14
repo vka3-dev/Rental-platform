@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { getNotifications } from "../services/api";
+import { getNotifications, markAllNotificationsRead } from "../services/api";
+import { supabase } from "../lib/supabase";
 import "./NotificationsPage.css";
 
 function NotificationsPage() {
@@ -16,9 +17,16 @@ function NotificationsPage() {
         setLoading(true);
         setError("");
 
-        const data = await getNotifications();
+        const { data } = await supabase.auth.getSession();
+        const userId = data.session?.user?.id;
+        if (!userId) {
+          setError("Please log in to see your notifications.");
+          return;
+        }
 
-        setNotifications(data);
+        const notificationsData = await getNotifications(userId);
+
+        setNotifications(notificationsData);
       } catch (error) {
         console.error("Error fetching notifications:", error);
         setError("Unable to load notifications.");
@@ -29,6 +37,19 @@ function NotificationsPage() {
 
     fetchNotifications();
   }, []);
+
+  const handleMarkAllRead = async () => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      const userId = data.session?.user?.id;
+      if (!userId) return;
+
+      await markAllNotificationsRead(userId);
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch (error) {
+      console.error("Error marking notifications as read:", error);
+    }
+  };
 
   const getNotificationIcon = (type) => {
     switch (type) {
@@ -88,7 +109,7 @@ function NotificationsPage() {
         </div>
 
         {notifications.length > 0 && (
-          <button className="mark-all-button">
+          <button className="mark-all-button" onClick={handleMarkAllRead}>
             Mark all as read
           </button>
         )}
@@ -138,7 +159,7 @@ function NotificationsPage() {
 
               {notifications.map((notification) => (
                 <div
-                  key={notification.id}
+                  key={notification.notificationId}
                   className={
                     notification.isRead
                       ? "notification-card"

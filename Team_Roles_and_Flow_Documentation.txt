@@ -1,0 +1,443 @@
+================================================================================
+ LENDLY (ShareSpare) — PEER-TO-PEER RENTAL PLATFORM
+ TEAM ROLES, RESPONSIBILITIES & INDIVIDUAL WORKFLOW DOCUMENTATION
+================================================================================
+
+PROJECT STACK
+--------------------------------------------------------------------------------
+Frontend   : React 18 + Vite, React Router, Axios
+Backend    : Java Spring Boot (REST API), Spring Security (OAuth2 Resource
+             Server / JWT), Lombok
+Database   : PostgreSQL (hosted on Supabase), 10 tables
+Auth       : Supabase Auth (email/password), JWT (ES256) validated by the
+             Spring backend against Supabase's JWKS endpoint
+Total measured codebase : ~12,300 lines across 83 source files
+             (Backend: 1,696 lines / 42 Java files
+              Frontend: 10,605 lines / 41 JS/JSX/CSS files)
+
+TEAM
+--------------------------------------------------------------------------------
+ 1. Narayanan   - User Login Page          | Track: Backend
+ 2. Aashika     - Lender Page              | Track: Feature Implementation
+ 3. Vignesh     - Bookings Page            | Track: Database
+ 4. Sneha       - Return Page              | Track: Feature Implementation
+ 5. Jeecika     - Product Page             | Track: Database
+ 6. Harini      - Frontend (overall)       | Track: Frontend (majorly)
+
+================================================================================
+ SECTION 1 — ROLES & RESPONSIBILITY MATRIX (WITH % AND NUMERICS)
+================================================================================
+
+Methodology note: Contribution % below is derived from the codebase itself —
+lines of code (LOC), files, REST endpoints, and database tables mapped to
+each person's assigned page/module — not from commit-by-commit git blame.
+It is meant as a documentation-grade estimate of scope, not a payroll audit.
+
+--------------------------------------------------------------------------------
+ OVERALL CONTRIBUTION SHARE (sums to 100% of measured project codebase)
+--------------------------------------------------------------------------------
+ Member       Track                  LOC Owned   Files   % of Project
+ -----------  ---------------------  ----------  ------  -------------
+ Harini       Frontend (overall)         4,877      16       39.6 %
+ Jeecika      Database (Product)         2,868       8       23.3 %
+ Aashika      Feature (Lender)           1,958       4       15.9 %
+ Vignesh      Database (Bookings)        1,042       5        8.5 %
+ Narayanan    Backend (Login)            1,047       6        8.5 %
+ Sneha        Feature (Return)             493       4        4.0 %
+ -----------  ---------------------  ----------  ------  -------------
+ TOTAL                                  12,285      42+41    ~100 %
+
+(Note: Sneha's raw LOC figure understates her real footprint — a large part
+of her Return/Damage/Review feature work is co-authored INSIDE files that
+Aashika and Vignesh own the route for, e.g. the return-verification panel
+inside RentalRequestsPage.jsx and the return-submission modal inside
+MyRentalsPage.jsx. See Section 1.4 and Section 2.4.)
+
+--------------------------------------------------------------------------------
+ 1.1  NARAYANAN — Backend Lead + User Login Page            (~8.5% | 1,047 LOC)
+--------------------------------------------------------------------------------
+ Primary ownership   : Authentication & backend security infrastructure
+ Backend modules     : SecurityConfig.java (70 LOC), User entity/repo/
+                        controller/service (92 LOC)  =  162 backend LOC
+ Frontend modules    : LoginPage.jsx (208), LoginPage.css (303),
+                        RegisterPage.jsx (91), RegisterPage.css (283)
+                        = 885 frontend LOC
+ Key numerics        :
+   - 1 JWT decoder bean (NimbusJwtDecoder, ES256, Supabase JWKS)
+   - 1 CORS policy + stateless session filter chain
+   - 1 REST endpoint:  GET /api/users/{id}
+   - 2 pages: Login, Register
+   - 100% ownership of the security/auth layer used by ALL other 41
+     REST endpoints in the system (every controller relies on his
+     SecurityConfig to accept/validate requests)
+
+--------------------------------------------------------------------------------
+ 1.2  AASHIKA — Feature Implementation: Lender Page          (~15.9% | 1,958 LOC)
+--------------------------------------------------------------------------------
+ Primary ownership   : Everything a lender does with an incoming request
+ Frontend modules    : MyListingsPage.jsx (98), RentalRequestsPage.jsx
+                        (1,078 — largest single page in the app),
+                        NotificationsPage.jsx (206), NotificationsPage.css
+                        (427)  = 1,809 frontend LOC
+ Backend modules     : Notification entity/repo/service/controller (149 LOC)
+ Key numerics        :
+   - 1 large dashboard page (1,078 LOC) — the single biggest file in the repo
+   - 4 REST endpoints: GET /reviewee, GET /reviewer (shared), GET/PUT/PUT
+     for notifications
+   - Feature: Approve/Reject-with-auto-cascade — approving 1 request
+     automatically rejects N competing REQUESTED bookings for the same item
+   - Feature: In-app notification system (built this cycle) — notifies
+     both the approved renter and every auto-rejected renter with a
+     specific reason ("item already rented out")
+
+--------------------------------------------------------------------------------
+ 1.3  VIGNESH — Database + Bookings Page                     (~8.5% | 1,042 LOC)
+--------------------------------------------------------------------------------
+ Primary ownership   : Booking lifecycle, schema & borrower's booking view
+ Database tables     : bookings, payments  (2 of 10 tables)
+ Backend modules     : Booking + Payment entity/repo/controller/service
+                        (505 LOC)
+ Frontend modules    : MyRentalsPage.jsx (537 LOC) — "My Rental Requests" /
+                        Bookings dashboard
+ Key numerics        :
+   - 2 database tables designed (bookings, payments), 6 foreign keys,
+     4 CHECK constraints (incl. end_time > start_time, renter <> lender)
+   - 1 overlap-prevention query (countOverlappingBookings) — the core
+     rule stopping an item being double-booked beyond its quantity
+   - 6 booking status states modeled: REQUESTED, APPROVED, REJECTED,
+     CONFIRMED/BOOKED, RETURNED, COMPLETED
+   - 5 REST endpoints on BookingController + 4 on PaymentController
+
+--------------------------------------------------------------------------------
+ 1.4  SNEHA — Feature Implementation: Return Page              (~4.0% | 493+ LOC)
+--------------------------------------------------------------------------------
+ Primary ownership   : Post-rental lifecycle — return, damage, review
+ Backend modules     : Return, DamageReport, Review entity/repo/controller/
+                        service (493 LOC across 3 modules, 12 files)
+ Frontend footprint  : No standalone route — the Return flow is embedded
+                        as two modals inside pages owned by teammates:
+                          - Borrower "Return Item" modal -> MyRentalsPage.jsx
+                            (co-authored with Vignesh)
+                          - Lender "Verify Return / Report Damage / Review
+                            Borrower" panel -> RentalRequestsPage.jsx
+                            (co-authored with Aashika)
+ Key numerics        :
+   - 3 backend modules owned (Return, DamageReport, Review)
+   - 5 REST endpoints (Return: 2, DamageReport: 2, Review: 5 incl. the
+     reviewer/reviewee lookups)
+   - Fixed this cycle: a data-corrupting bug where the Review upsert was
+     keyed by bookingId only (one review overwrote the other party's
+     review on the same booking) — now keyed by (bookingId, reviewerId)
+   - Enforces the review-eligibility rule server-side: a booking must be
+     RETURNED or COMPLETED, and rating must be 1-5, before a review is
+     accepted
+
+--------------------------------------------------------------------------------
+ 1.5  JEECIKA — Database + Product Page                       (~23.3% | 2,868 LOC)
+--------------------------------------------------------------------------------
+ Primary ownership   : Item catalog — the largest single functional area
+ Database tables     : items, categories, item_images (3 of 10 tables)
+ Backend modules     : Item + Category + ItemImage entity/repo/controller/
+                        service (374 LOC, 12 files)
+ Frontend modules    : ProductsPage.jsx (357) + ProductsPage.css (726),
+                        ProductDetailsPage.jsx (448) + ProductDetailsPage.css
+                        (607), AddProductPage.jsx (356)  = 2,494 frontend LOC
+ Key numerics        :
+   - 3 database tables (items, categories, item_images), 5 foreign keys,
+     3 indexes (owner, category, availability)
+   - 3 pages: Browse (Products), Detail (ProductDetails), Create
+     (AddProduct) — the full catalog CRUD-and-discovery surface
+   - 1 quantity/availability engine (multi-unit items, live stock count)
+   - This cycle: added lender identity + average star rating on the
+     Product Details page (GET /api/users/{id} + GET /api/reviews/
+     reviewee/{id})
+
+--------------------------------------------------------------------------------
+ 1.6  HARINI — Frontend (majorly)                            (~39.6% | 4,877 LOC)
+--------------------------------------------------------------------------------
+ Primary ownership   : App shell, shared UI system, cross-page consistency
+ Modules owned       :
+   - Navbar.jsx/css (337), Footer.jsx/css (385)
+   - Icons.jsx (265) — the full custom icon set used across every page
+   - InnovativeNotification.jsx/css (238) — the shared toast component
+     used by both MyRentalsPage and RentalRequestsPage
+   - WorkflowPage.css (1,298 LOC) — the single largest CSS file; shared
+     styling system for every dashboard-style page (Lender, Borrower,
+     Listings, Return/Review modals)
+   - LandingPage.jsx/css (513), HomePage.jsx (30), PaymentPage.jsx/css
+     (1,263), AppRoutes.jsx (37), App.jsx/main.jsx/App.css (47)
+   - api.js (307) and rentalRequestsService.js (157) — the shared Axios
+     client (incl. the Supabase-JWT request interceptor) and the caching/
+     data-stitching layer every dashboard page depends on
+ Key numerics        :
+   - 16 shared/infra files, largest single share of the codebase (39.6%)
+   - 11 of 11 application routes render inside her Navbar/Footer shell
+   - 1 shared API client used by all 6 team members' pages (every
+     getX/createX/updateX call in the app funnels through her api.js)
+   - Highest-leverage role by file reach: a change to WorkflowPage.css or
+     api.js touches every other person's page
+
+================================================================================
+ SECTION 2 — DETAILED INDIVIDUAL FLOW DOCUMENTATION
+================================================================================
+
+--------------------------------------------------------------------------------
+ 2.1  NARAYANAN — User Login Page (Backend / Auth Flow)
+--------------------------------------------------------------------------------
+ Route: /login , /register   |  Files: LoginPage.jsx, RegisterPage.jsx,
+                                         SecurityConfig.java, User module
+
+ Step-by-step flow:
+  1. User opens /login (LoginPage.jsx renders a plain email/password form).
+  2. On submit, the frontend calls supabase.auth.signInWithPassword()
+     DIRECTLY from the browser — there is no custom backend /api/auth/login
+     endpoint; Supabase Auth issues the session.
+  3. On success, Supabase returns a session containing a short-lived JWT
+     access token (signed ES256) plus the authenticated user's UUID.
+  4. The frontend immediately calls GET /api/users/{id} to fetch the
+     user's saved `location`, used to default their city across the app
+     (Product filters, Add-Product form). Falls back to Supabase
+     user_metadata, then to nothing, if the profile row has no location.
+  5. User is redirected to /products.
+  6. From this point on, EVERY axios call made anywhere in the app passes
+     through a request interceptor (api.js) that reads the current
+     Supabase session and attaches
+        Authorization: Bearer <access_token>
+     to the outgoing request automatically.
+  7. On the backend, SecurityConfig intercepts every request:
+       - Validates the JWT signature against Supabase's public JWKS
+         (https://<project>.supabase.co/auth/v1/.well-known/jwks.json)
+       - Validates the issuer claim
+       - Runs stateless (no server-side session, no cookies)
+       - CORS is restricted to localhost dev origins
+     NOTE (known gap, flagged not fixed): authorizeHttpRequests currently
+     permits ALL requests regardless of token validity
+     (`.anyRequest().permitAll()`), so the JWT is decoded but not yet
+     used to gate access to individual endpoints — enforcement is
+     effectively client-side to date.
+  8. Registration (/register) mirrors this: supabase.auth.signUp() creates
+     the auth.users row; a Postgres trigger (handle_new_user, defined in
+     seed.sql) automatically inserts the matching public.users profile
+     row, seeded from the signup metadata (name, mobile).
+  9. Logout: Navbar.jsx calls supabase.auth.signOut() and redirects to
+     /login (shared component, built by Harini, wired to Narayanan's auth
+     session).
+
+--------------------------------------------------------------------------------
+ 2.2  AASHIKA — Lender Page (Feature Implementation Flow)
+--------------------------------------------------------------------------------
+ Routes: /my-listings , /rental-requests , /notifications
+ Files: MyListingsPage.jsx, RentalRequestsPage.jsx, Notification module
+
+ Step-by-step flow:
+  1. Lender opens /my-listings -> GET /api/items/owner/{ownerId} loads
+     every item they've listed, showing Available/Unavailable status.
+  2. Lender opens /rental-requests ("Lender Dashboard") -> GET /api/
+     bookings/lender/{lenderId} loads every incoming booking request
+     across all their items, then rentalRequestsService.js (see 2.6)
+     stitches in the item, the borrower's profile, the borrower's past
+     reviews, and repeat-customer history for each row.
+  3. For a REQUESTED booking, the lender sees Approve / Reject buttons.
+  4. Approve -> confirmation modal warns "this will auto-reject all other
+     pending requests for this item" -> PUT /api/bookings/{id}/status?
+     status=APPROVED.
+  5. Backend (BookingService.updateStatus):
+       a. Sets this booking to APPROVED.
+       b. Looks up every OTHER booking on the same item still in
+          REQUESTED status and force-sets them to REJECTED, stamping
+          each with a rejectionReason explaining a competing request won.
+       c. Creates a Notification row for the approved renter
+          ("Request Approved!") and one per auto-rejected renter
+          ("Request Declined" + the specific reason).
+  6. Reject (explicit, single booking) -> PUT .../status?status=REJECTED
+     -> creates a single "Request Declined" notification for that renter.
+  7. Once the borrower marks the item returned, the same page shows a
+     "Return Verification" panel (built with Sneha, see 2.4) with
+     Verify Return & Relist / Report Damage / Review Borrower actions.
+  8. "Review Borrower" opens a star-rating + tag modal -> POST /api/
+     reviews. The button is hidden and replaced with a disabled
+     "Reviewed" pill once a review already exists for that specific
+     booking (fixed this cycle — previously it stayed clickable forever
+     and silently overwrote the prior review).
+  9. /notifications (NotificationsPage.jsx) reads GET /api/notifications/
+     recipient/{userId} for the logged-in user (works for both lenders
+     and borrowers) and supports "mark all as read".
+
+--------------------------------------------------------------------------------
+ 2.3  VIGNESH — Bookings Page (Database Flow)
+--------------------------------------------------------------------------------
+ Route: /my-rentals   |   Table: bookings, payments   |   File: MyRentalsPage.jsx
+
+ Step-by-step flow:
+  1. Borrower requests an item from ProductDetailsPage -> POST /api/
+     bookings { itemId, renterId, startTime, endTime, deliveryMethod }.
+  2. BookingService.createBooking validates: item exists, item is
+     available, requested window doesn't push overlapping APPROVED/
+     CONFIRMED/BOOKED bookings past the item's quantity
+     (countOverlappingBookings — Vignesh's core scheduling rule), then
+     snapshots price + securityDeposit from the item and sets status =
+     REQUESTED.
+  3. Borrower opens /my-rentals -> GET /api/bookings/renter/{renterId}
+     lists every booking they've made, each enriched client-side with
+     the item's details (GET /api/items/{id}).
+  4. Status badge on each card reflects the booking's lifecycle:
+     REQUESTED -> APPROVED -> (Pay Now) -> CONFIRMED/BOOKED ->
+     (Return Item) -> RETURNED -> COMPLETED, or REQUESTED -> REJECTED.
+  5. If REJECTED, the card now shows the rejectionReason inline (added
+     this cycle) so the borrower immediately understands whether it was
+     a manual decline or an automatic one because a competing request
+     for the same item was approved first.
+  6. APPROVED bookings show "Pay Now" -> navigates to /payment with the
+     booking context; on completion a payments row is written
+     (payment_type: ADVANCE/SECURITY_DEPOSIT/REMAINING_AMOUNT/
+     DAMAGE_PAYMENT/REFUND) tied 1:many to the booking via booking_id.
+  7. Database design specifics (bookings table): booking_id identity PK,
+     item_id/renter_id/lender_id foreign keys, start_time/end_time with
+     a CHECK(end_time > start_time), price/security_deposit with
+     CHECK(>= 0), and CHECK(renter_id <> lender_id) preventing a user
+     from booking their own item.
+
+--------------------------------------------------------------------------------
+ 2.4  SNEHA — Return Page (Feature Implementation Flow)
+--------------------------------------------------------------------------------
+ Embedded in: /my-rentals (borrower side) and /rental-requests (lender side)
+ Tables: returns, damage_reports, reviews
+
+ Step-by-step flow:
+  1. Once a booking is CONFIRMED/BOOKED, the borrower's MyRentalsPage
+     shows a "Return Item" button -> opens a modal capturing condition
+     (Like New / Good / Normal Wear) and handover remarks.
+  2. Submitting -> POST /api/returns { bookingId, remarks, condition,
+     status: RETURNED }, and the booking's own status is optimistically
+     flipped to RETURNED so both dashboards agree immediately.
+  3. On the lender's RentalRequestsPage, a RETURNED booking surfaces a
+     "Return Verification" panel with three actions:
+       - Verify Return & Relist -> PUT /api/bookings/{id}/complete-
+         return?relist=true|false. On confirm, the booking flips to
+         COMPLETED, the linked returns row is marked
+         CONFIRMED_BY_LENDER, and the item's quantity/availability is
+         restored (relist) or kept unlisted (relist=false, e.g. pending
+         inspection or write-off).
+       - Report Issue / Damage -> POST /api/damage-reports { bookingId,
+         damageDescription, damageCost, status: REPORTED } — logs a
+         damage_reports row with an estimated cost, independent of the
+         return-completion decision.
+       - Review Borrower -> POST /api/reviews (see step 5).
+  4. Symmetrically, once RETURNED/COMPLETED, the borrower can Review
+     Lender from MyRentalsPage.
+  5. Review submission rules (backend-enforced, fixed this cycle):
+       - rating must be between 1 and 5
+       - the booking must exist and be RETURNED or COMPLETED
+       - reviewerId/revieweeId must actually be the booking's renter/
+         lender pair (in either direction)
+       - one review per (booking, reviewer) — so the lender's review of
+         the borrower and the borrower's review of the lender on the
+         SAME booking now coexist correctly instead of one overwriting
+         the other's rating/comment (the pre-fix behavior).
+     Both "Review" buttons now disable/hide once that specific booking
+     has already been reviewed by the current user, instead of staying
+     clickable and re-triggering the old overwrite bug.
+
+     ** KNOWN ISSUE (open, not yet fixed in the database): ** seed.sql
+     declares `reviews.booking_id` as NOT NULL UNIQUE. The application
+     fix above changes the Java-level lookup key to (booking_id,
+     reviewer_id), but ddl-auto=update never alters an existing DB
+     constraint, so the live Postgres table still physically rejects a
+     second review row for the same booking_id. Until that column-level
+     UNIQUE is dropped and replaced with UNIQUE(booking_id, reviewer_id),
+     only one side's review can actually be persisted per booking.
+
+--------------------------------------------------------------------------------
+ 2.5  JEECIKA — Product Page (Database Flow)
+--------------------------------------------------------------------------------
+ Routes: /products , /products/:productId , /add-product
+ Tables: items, categories, item_images
+
+ Step-by-step flow:
+  1. /products (ProductsPage.jsx) -> GET /api/items/available lists every
+     item currently marked available, filterable/searchable client-side.
+  2. Clicking a card -> /products/:productId (ProductDetailsPage.jsx) ->
+     GET /api/items/{id} for the item plus GET /api/items/{id}/images
+     for its gallery (primary image chosen by is_primary flag).
+  3. This cycle's addition: the page also resolves the item's owner
+     (GET /api/users/{ownerId}) and that owner's reviews (GET /api/
+     reviews/reviewee/{ownerId}) to show the lender's name and a
+     computed average star rating next to "Product Owner" — previously
+     this field always fell back to the hardcoded string "ShareSpare
+     User" because the Item response never actually carried a
+     lenderName/ownerName field.
+  4. Submitting the rental-request form -> POST /api/bookings (handed
+     off into Vignesh's booking flow, 2.3).
+  5. /add-product (AddProductPage.jsx, lender-only) -> defaults the
+     location field from Supabase user_metadata, then localStorage, then
+     the user's saved profile location -> POST /api/items { itemName,
+     description, catID, location, condition, rentalPrice,
+     securityDeposit, quantity } followed by POST /api/items/{id}/images
+     per uploaded photo.
+  6. Database design specifics: items.owner_id and items.cat_id are
+     foreign keys (RESTRICT on category delete, CASCADE on owner
+     delete); quantity supports multi-unit items (e.g. "3 tents
+     available"); three indexes (owner, category, availability) keep
+     the /available and /owner/{id} queries fast; item_images cascades
+     on item delete so orphaned photos can't remain.
+
+--------------------------------------------------------------------------------
+ 2.6  HARINI — Frontend (Overall Architecture & UI System)
+--------------------------------------------------------------------------------
+ Scope: cross-cutting — every route renders through her shell/components
+
+ Step-by-step flow (what she owns end-to-end):
+  1. App.jsx / main.jsx / AppRoutes.jsx — the single React Router table
+     mounting all 11 routes (Landing, Login, Register, Products,
+     ProductDetails, Payment, Notifications, Home, MyRentals,
+     RentalRequests, MyListings, AddProduct).
+  2. Navbar.jsx — the global nav bar: reads the Supabase session on
+     mount and on auth-state-change, conditionally shows My Rentals /
+     My Listings / Requests / Notifications links only when logged in,
+     and preloads the lender's rental-requests cache on hover for
+     instant navigation.
+  3. Footer.jsx, Icons.jsx (the entire custom SVG icon set consumed by
+     every other page), and InnovativeNotification.jsx (the toast
+     component every teammate's success/error messages render through
+     — RentalRequestsPage and MyRentalsPage both import it directly).
+  4. WorkflowPage.css — the shared visual language (cards, status
+     pills, buttons, modals) reused by MyListingsPage, MyRentalsPage,
+     RentalRequestsPage and AddProductPage; the single largest CSS file
+     in the project (1,298 lines) and the reason those four very
+     different pages look/behave consistently.
+  5. api.js — the one Axios instance for the whole app: attaches the
+     Supabase JWT to every request (the client-side half of Narayanan's
+     auth flow, 2.1) and exports every getX/createX/updateX function
+     every other page imports.
+  6. rentalRequestsService.js — an in-memory cache + de-duplication
+     layer in front of Aashika's lender dashboard, so navigating away
+     and back (or hovering "Requests" in the Navbar) renders instantly
+     instead of re-fetching item/borrower/review/history data every
+     time.
+  7. LandingPage, HomePage, PaymentPage, ProfilePage, Notifications
+     styling — general visual/responsive polish layered on top of each
+     teammate's functional page.
+
+================================================================================
+ SECTION 3 — DATABASE SCHEMA SUMMARY (10 TABLES)
+================================================================================
+ users            - Supabase-auth-linked profile (name, mobile, location,
+                     rating) — Narayanan
+ categories       - item categories — Jeecika
+ items            - listings (owner_id, cat_id FKs) — Jeecika
+ item_images      - gallery per item, cascade-deletes with item — Jeecika
+ bookings         - the core rental lifecycle record — Vignesh
+ payments         - ADVANCE/SECURITY_DEPOSIT/REMAINING/DAMAGE/REFUND — Vignesh
+ returns          - 1:1 with a booking, condition + remarks — Sneha
+ damage_reports   - 1:many with a booking, cost + status — Sneha
+ reviews          - rating 1-5 — Sneha. NOTE: table currently has
+                     UNIQUE(booking_id) at the DB level, which blocks the
+                     intended 1-review-per-(booking,reviewer) model until
+                     migrated to UNIQUE(booking_id, reviewer_id) — see
+                     Section 2.4.
+ notifications    - added this cycle (Hibernate-managed, not in the
+                     original seed.sql) — Aashika
+
+================================================================================
+ END OF DOCUMENT
+================================================================================

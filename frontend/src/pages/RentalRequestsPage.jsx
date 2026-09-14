@@ -100,23 +100,35 @@ function RentalRequestsPage() {
 			setActionError("");
 			await updateBookingStatus(bookingId, status);
 			invalidateRequestsCache();
-			setConfirmAcceptBooking(null);
-			setConfirmRejectBooking(null);
 
+			// Optimistic: update status immediately in UI
 			if (status === "APPROVED") {
+				// Also mark other REQUESTED bookings for same item as REJECTED optimistically
+				const approvedReq = requests.find((r) => r.bookingId === bookingId);
+				setRequests((prev) =>
+					prev.map((r) => {
+						if (r.bookingId === bookingId) return { ...r, status: "APPROVED" };
+						if (r.itemId === approvedReq?.itemId && r.status === "REQUESTED") return { ...r, status: "REJECTED" };
+						return r;
+					})
+				);
 				setToast({
 					type: "success",
 					title: "Borrow Request Accepted!",
 					message: "Borrower has been confirmed. Any competing requests for this item were automatically declined.",
 				});
 			} else if (status === "REJECTED") {
+				optimisticUpdate(bookingId, { status: "REJECTED" });
 				setToast({
 					type: "info",
 					title: "Request Declined",
 					message: "The borrow request was declined.",
 				});
 			}
-			await loadRequests(true);
+			setConfirmAcceptBooking(null);
+			setConfirmRejectBooking(null);
+			// Background sync — don't await, UI already updated
+			loadRequests(true);
 		} catch (error) {
 			setActionError(error.response?.data?.message || "Unable to update this request.");
 			setToast({
@@ -136,8 +148,10 @@ function RentalRequestsPage() {
 			setIsProcessingAction(true);
 			await completeReturn(bookingId, relist);
 			invalidateRequestsCache();
-			setConfirmReturnBooking(null);
 
+			// Optimistic: mark as COMPLETED immediately
+			optimisticUpdate(bookingId, { status: "COMPLETED" });
+			setConfirmReturnBooking(null);
 			setToast({
 				type: "success",
 				title: "Return Verified!",
@@ -145,7 +159,8 @@ function RentalRequestsPage() {
 					? "Item has been marked as returned and relisted into your active catalog."
 					: "Item has been marked as returned and kept unlisted for inspection.",
 			});
-			await loadRequests(true);
+			// Background sync
+			loadRequests(true);
 		} catch (error) {
 			console.error("Failed to complete return:", error);
 			setActionError(error.response?.data?.message || "Failed to confirm return.");
@@ -202,13 +217,41 @@ function RentalRequestsPage() {
 				? `[${reviewTags.join(", ")}] ${reviewComment}`
 				: reviewComment;
 
-			await createReview({
+			const newReview = await createReview({
 				bookingId: reviewModalBooking.bookingId,
 				reviewerId: data.session?.user?.id,
 				revieweeId: reviewModalBooking.renterId,
 				rating: reviewRating,
 				comment: combinedComment,
 			});
+
+			// Optimistic: inject the new review into local state immediately
+			const optimisticReview = newReview || {
+				reviewId: Date.now(),
+				bookingId: reviewModalBooking.bookingId,
+				rating: reviewRating,
+				comment: combinedComment,
+				createdAt: new Date().toISOString(),
+			};
+			const targetRenterId = reviewModalBooking.renterId;
+			setRequests((prev) =>
+				prev.map((r) => {
+					if (r.renterId !== targetRenterId) return r;
+					const existingReviews = r.reviews || [];
+					const alreadyExists = existingReviews.some(
+						(rv) => rv.bookingId === reviewModalBooking.bookingId
+					);
+					return {
+						...r,
+						reviews: alreadyExists
+							? existingReviews.map((rv) =>
+									rv.bookingId === reviewModalBooking.bookingId ? optimisticReview : rv
+							  )
+							: [...existingReviews, optimisticReview],
+					};
+				})
+			);
+
 			setReviewModalBooking(null);
 			setReviewRating(5);
 			setReviewComment("");
@@ -219,7 +262,8 @@ function RentalRequestsPage() {
 				title: "Review Published!",
 				message: "Thank you! Your feedback helps build trust in the ShareSpare community.",
 			});
-			await loadRequests(true);
+			// Background sync
+			loadRequests(true);
 		} catch (error) {
 			console.error(error);
 			setToast({
@@ -243,6 +287,13 @@ function RentalRequestsPage() {
 			...prev,
 			[bookingId]: !prev[bookingId],
 		}));
+	}
+
+	// Optimistically mutate a single request's fields in local state
+	function optimisticUpdate(bookingId, patch) {
+		setRequests((prev) =>
+			prev.map((r) => (r.bookingId === bookingId ? { ...r, ...patch } : r))
+		);
 	}
 
 	function getBorrowerRatingDisplay(borrower, reviews) {
@@ -308,6 +359,9 @@ function RentalRequestsPage() {
 					{requests.map((request) => {
 						const ratingInfo = getBorrowerRatingDisplay(request.borrower, request.reviews);
 						const isReviewsOpen = expandedReviews[request.bookingId];
+						const alreadyReviewedBooking = (request.reviews || []).some(
+							(rv) => rv.bookingId === request.bookingId
+						);
 						const borrowerInitial = request.borrower?.name
 							? request.borrower.name.trim()[0].toUpperCase()
 							: "U";
@@ -506,13 +560,20 @@ function RentalRequestsPage() {
 													<IconAlertTriangle size={14} />
 													Report Issue / Damage
 												</button>
-												<button
-													className="workflow-button star-btn"
-													onClick={() => setReviewModalBooking(request)}
-												>
-													<IconStar size={14} />
-													Review Borrower
-												</button>
+												{alreadyReviewedBooking ? (
+													<span className="workflow-button star-btn disabled" title="You already reviewed this borrower">
+														<IconCheck size={14} />
+														Reviewed
+													</span>
+												) : (
+													<button
+														className="workflow-button star-btn"
+														onClick={() => setReviewModalBooking(request)}
+													>
+														<IconStar size={14} />
+														Review Borrower
+													</button>
+												)}
 											</div>
 										</div>
 									)}
@@ -525,13 +586,20 @@ function RentalRequestsPage() {
 												Return Verified & Rental Completed
 											</span>
 											<div style={{ display: "flex", gap: "8px" }}>
-												<button
-													className="workflow-button star-btn sm"
-													onClick={() => setReviewModalBooking(request)}
-												>
-													<IconStar size={13} />
-													Review Borrower
-												</button>
+												{alreadyReviewedBooking ? (
+													<span className="workflow-button star-btn sm disabled" title="You already reviewed this borrower">
+														<IconCheck size={13} />
+														Reviewed
+													</span>
+												) : (
+													<button
+														className="workflow-button star-btn sm"
+														onClick={() => setReviewModalBooking(request)}
+													>
+														<IconStar size={13} />
+														Review Borrower
+													</button>
+												)}
 												<button
 													className="workflow-button danger sm"
 													onClick={() => setDamageModalBooking(request)}

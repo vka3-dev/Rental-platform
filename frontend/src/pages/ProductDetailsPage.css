@@ -226,6 +226,45 @@
   font-weight: 700;
 }
 
+.lender-name-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.lender-rating-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #557086;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.lender-location {
+  margin-top: 6px !important;
+  color: #557086 !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+}
+
+.star-rating {
+  display: inline-flex;
+  gap: 1px;
+  line-height: 1;
+}
+
+.star-rating .star {
+  color: #cbd5e1;
+  font-size: 15px;
+}
+
+.star-rating .star.filled {
+  color: #f59e0b;
+}
+
+
 /* =========================
    RENTAL FORM
 ========================= */
