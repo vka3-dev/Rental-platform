@@ -26,10 +26,6 @@
     );
 }
 
-/* =========================
-   PRODUCTS HEADER
-========================= */
-
 .products-header {
   padding: 55px 20px 30px;
   text-align: center;
@@ -56,17 +52,12 @@
   line-height: 1.7;
 }
 
-/* =========================
-   SEARCH & FILTER SECTION
-========================= */
-
 .products-search-section {
   max-width: 1100px;
   margin: 0 auto;
   padding: 20px;
 }
 
-/* Search and City Filter Row */
 .search-and-filter-row {
   display: flex;
   align-items: center;
@@ -134,7 +125,6 @@
   color: #475569;
 }
 
-/* Compact City Filter Component */
 .city-filter-compact {
   display: inline-flex;
   align-items: center;
@@ -194,7 +184,6 @@
   color: #dc2626;
 }
 
-/* Location Context Sub-bar */
 .location-context-bar {
   display: flex;
   justify-content: center;
@@ -251,10 +240,6 @@
   background: #f0f7ff;
 }
 
-/* =========================
-   CATEGORY FILTER
-========================= */
-
 .category-filter {
   display: flex;
   justify-content: center;
@@ -300,10 +285,6 @@
   box-shadow: 0 7px 18px rgba(0, 123, 255, 0.25);
 }
 
-/* =========================
-   PRODUCTS SECTION
-========================= */
-
 .products-section {
   max-width: 1100px;
   margin: 0 auto;
@@ -331,19 +312,11 @@
   font-weight: 600;
 }
 
-/* =========================
-   PRODUCTS GRID
-========================= */
-
 .products-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 22px;
 }
-
-/* =========================
-   PRODUCT CARD
-========================= */
 
 .product-card {
   overflow: hidden;
@@ -363,10 +336,6 @@
   border-color: rgba(0, 123, 255, 0.3);
   box-shadow: 0 20px 40px rgba(0, 86, 214, 0.18);
 }
-
-/* =========================
-   PRODUCT IMAGE
-========================= */
 
 .product-image {
   width: 100%;
@@ -392,15 +361,9 @@
   transform: scale(1.05);
 }
 
-/* =========================
-   PRODUCT CONTENT
-========================= */
-
 .product-content {
   padding: 18px;
 }
-
-/* Category + Location */
 
 .product-card-meta {
   display: flex;
@@ -432,8 +395,6 @@
   font-weight: 600;
 }
 
-/* Product Name */
-
 .product-content h3 {
   margin: 7px 0 7px;
   color: #082b4c;
@@ -442,8 +403,6 @@
   line-height: 1.3;
 }
 
-/* Description */
-
 .product-description {
   min-height: 40px;
   margin: 0;
@@ -451,10 +410,6 @@
   font-size: 13px;
   line-height: 1.55;
 }
-
-/* =========================
-   STOCK
-========================= */
 
 .product-stock-row {
   margin: 12px 0 10px;
@@ -474,10 +429,6 @@
 .stock-indicator strong {
   font-weight: 800;
 }
-
-/* =========================
-   PRICE + BUTTON
-========================= */
 
 .product-bottom {
   display: flex;
@@ -505,8 +456,6 @@
   color: #557086;
   font-size: 11px;
 }
-
-/* View Details */
 
 .view-button {
   display: inline-flex;
@@ -541,10 +490,6 @@
   transform: translateY(-2px);
   box-shadow: 0 9px 20px rgba(0, 86, 214, 0.3);
 }
-
-/* =========================
-   LOADING / EMPTY / ERROR
-========================= */
 
 .products-message {
   max-width: 650px;
@@ -582,10 +527,6 @@
   color: #c62828;
 }
 
-/* =========================
-   RESPONSIVE - TABLET
-========================= */
-
 @media (max-width: 900px) {
   .products-header {
     padding-top: 45px;
@@ -604,10 +545,6 @@
     padding-top: 28px;
   }
 }
-
-/* =========================
-   RESPONSIVE - MOBILE
-========================= */
 
 @media (max-width: 650px) {
   .products-header {
@@ -654,10 +591,6 @@
     margin-bottom: 18px;
   }
 }
-
-/* =========================
-   RESPONSIVE - SMALL MOBILE
-========================= */
 
 @media (max-width: 450px) {
   .products-header {

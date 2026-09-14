@@ -31,7 +31,6 @@ import {
 import "./WorkflowPage.css";
 
 function RentalRequestsPage() {
-	// Initialize with cached requests if preloaded for instant 0ms render
 	const [requests, setRequests] = useState(() => {
 		const cached = getCachedRequests();
 		return cached || [];
@@ -44,7 +43,6 @@ function RentalRequestsPage() {
 	const [expandedReviews, setExpandedReviews] = useState({});
 	const [toast, setToast] = useState(null);
 
-	// Innovative Modal States
 	const [confirmAcceptBooking, setConfirmAcceptBooking] = useState(null);
 	const [confirmRejectBooking, setConfirmRejectBooking] = useState(null);
 	const [confirmReturnBooking, setConfirmReturnBooking] = useState(null);
@@ -72,7 +70,6 @@ function RentalRequestsPage() {
 			return;
 		}
 
-		// Instant display if cached
 		const cached = getCachedRequests(lenderId);
 		if (cached && !forceRefresh) {
 			setRequests(cached);
@@ -101,9 +98,7 @@ function RentalRequestsPage() {
 			await updateBookingStatus(bookingId, status);
 			invalidateRequestsCache();
 
-			// Optimistic: update status immediately in UI
 			if (status === "APPROVED") {
-				// Also mark other REQUESTED bookings for same item as REJECTED optimistically
 				const approvedReq = requests.find((r) => r.bookingId === bookingId);
 				setRequests((prev) =>
 					prev.map((r) => {
@@ -127,7 +122,6 @@ function RentalRequestsPage() {
 			}
 			setConfirmAcceptBooking(null);
 			setConfirmRejectBooking(null);
-			// Background sync — don't await, UI already updated
 			loadRequests(true);
 		} catch (error) {
 			setActionError(error.response?.data?.message || "Unable to update this request.");
@@ -149,7 +143,6 @@ function RentalRequestsPage() {
 			await completeReturn(bookingId, relist);
 			invalidateRequestsCache();
 
-			// Optimistic: mark as COMPLETED immediately
 			optimisticUpdate(bookingId, { status: "COMPLETED" });
 			setConfirmReturnBooking(null);
 			setToast({
@@ -159,7 +152,6 @@ function RentalRequestsPage() {
 					? "Item has been marked as returned and relisted into your active catalog."
 					: "Item has been marked as returned and kept unlisted for inspection.",
 			});
-			// Background sync
 			loadRequests(true);
 		} catch (error) {
 			console.error("Failed to complete return:", error);
@@ -225,7 +217,6 @@ function RentalRequestsPage() {
 				comment: combinedComment,
 			});
 
-			// Optimistic: inject the new review into local state immediately
 			const optimisticReview = newReview || {
 				reviewId: Date.now(),
 				bookingId: reviewModalBooking.bookingId,
@@ -262,7 +253,6 @@ function RentalRequestsPage() {
 				title: "Review Published!",
 				message: "Thank you! Your feedback helps build trust in the ShareSpare community.",
 			});
-			// Background sync
 			loadRequests(true);
 		} catch (error) {
 			console.error(error);
@@ -289,7 +279,6 @@ function RentalRequestsPage() {
 		}));
 	}
 
-	// Optimistically mutate a single request's fields in local state
 	function optimisticUpdate(bookingId, patch) {
 		setRequests((prev) =>
 			prev.map((r) => (r.bookingId === bookingId ? { ...r, ...patch } : r))
@@ -368,7 +357,6 @@ function RentalRequestsPage() {
 
 						return (
 							<article className="workflow-card" key={request.bookingId}>
-								{/* Card Top Header */}
 								<div className="card-header-row">
 									<div className="card-header-left">
 										<span className="workflow-label">Booking #{request.bookingId}</span>
@@ -383,7 +371,6 @@ function RentalRequestsPage() {
 									</strong>
 								</div>
 
-								{/* Card Body */}
 								<div className="card-main-content">
 									<div className="item-title-row">
 										<h2 className="item-title">
@@ -406,7 +393,6 @@ function RentalRequestsPage() {
 										)}
 									</div>
 
-									{/* Borrower Profile Section */}
 									<div className="borrower-section">
 										<div className="borrower-header">
 											<div className="borrower-identity">
@@ -432,7 +418,6 @@ function RentalRequestsPage() {
 											</div>
 										</div>
 
-										{/* Customer Rental History Badges */}
 										<div className="trust-badges-row">
 											{request.customerHistory?.timesWithLender > 0 ? (
 												<span className="repeat-renter-pill">
@@ -459,7 +444,6 @@ function RentalRequestsPage() {
 											<span>{ratingInfo.recommendation}</span>
 										</div>
 
-										{/* Reviews Expand / Collapse */}
 										{request.reviews && request.reviews.length > 0 && (
 											<div className="reviews-toggle-section">
 												<button
@@ -499,7 +483,6 @@ function RentalRequestsPage() {
 										)}
 									</div>
 
-									{/* Schedule & Duration Grid */}
 									<div className="schedule-grid">
 										<div className="schedule-block">
 											<span className="schedule-label">
@@ -527,7 +510,6 @@ function RentalRequestsPage() {
 										</div>
 									</div>
 
-									{/* Direct 1-Click Return Resolution Section */}
 									{request.status === "RETURNED" && (
 										<div className="return-streamlined-panel">
 											<div className="return-panel-header">
@@ -578,7 +560,6 @@ function RentalRequestsPage() {
 										</div>
 									)}
 
-									{/* Completed State Banner */}
 									{request.status === "COMPLETED" && (
 										<div className="completed-alert-banner">
 											<span className="completed-badge-text">
@@ -612,7 +593,6 @@ function RentalRequestsPage() {
 									)}
 								</div>
 
-								{/* Card Bottom Actions (For REQUESTED status) */}
 								{request.status === "REQUESTED" && (
 									<div className="card-actions-bar">
 										<button
@@ -636,7 +616,6 @@ function RentalRequestsPage() {
 					})}
 				</div>
 
-				{/* 1. Innovative Accept Request Confirmation Modal */}
 				{confirmAcceptBooking && (
 					<div
 						className="modal-overlay"
@@ -724,7 +703,6 @@ function RentalRequestsPage() {
 					</div>
 				)}
 
-				{/* 2. Innovative Decline Request Modal */}
 				{confirmRejectBooking && (
 					<div
 						className="modal-overlay"
@@ -780,7 +758,6 @@ function RentalRequestsPage() {
 					</div>
 				)}
 
-				{/* 3. Innovative Return Verification & Relist Modal */}
 				{confirmReturnBooking && (
 					<div
 						className="modal-overlay"
@@ -812,7 +789,6 @@ function RentalRequestsPage() {
 								The borrower has returned <strong>{confirmReturnBooking.item?.itemName || `Item #${confirmReturnBooking.itemId}`}</strong>. How would you like to handle this item in your catalog?
 							</p>
 
-							{/* Interactive Relist Selection Cards */}
 							<div className="modal-selection-grid">
 								<div
 									className={`modal-selection-card ${returnRelistOption ? "selected" : ""}`}
@@ -872,7 +848,6 @@ function RentalRequestsPage() {
 					</div>
 				)}
 
-				{/* 4. Innovative Damage Report Modal */}
 				{damageModalBooking && (
 					<div
 						className="modal-overlay"
@@ -958,7 +933,6 @@ function RentalRequestsPage() {
 					</div>
 				)}
 
-				{/* 5. Innovative Borrower Review Modal */}
 				{reviewModalBooking && (
 					<div
 						className="modal-overlay"
@@ -1064,7 +1038,6 @@ function RentalRequestsPage() {
 					</div>
 				)}
 
-				{/* Innovative Toast Notification */}
 				<InnovativeToast
 					notification={toast}
 					onClose={() => setToast(null)}

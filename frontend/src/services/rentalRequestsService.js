@@ -6,16 +6,13 @@ import {
   getCustomerHistory,
 } from "./api";
 
-// In-memory cache for fast instant rendering
 let cachedRequests = null;
 let cachedLenderId = null;
 let lastFetchTime = 0;
-const CACHE_TTL_MS = 60 * 1000; // 1 minute fresh TTL
+const CACHE_TTL_MS = 60 * 1000;
 
-// In-flight promise deduplication
 let inFlightFetch = null;
 
-// Entity memoization caches
 const itemCache = new Map();
 const userCache = new Map();
 const reviewsCache = new Map();
@@ -25,7 +22,7 @@ export function getCachedRequests(lenderId) {
   if (
     cachedRequests &&
     cachedLenderId === lenderId &&
-    Date.now() - lastFetchTime < CACHE_TTL_MS * 5 // allow slightly stale for instant 0ms mount
+    Date.now() - lastFetchTime < CACHE_TTL_MS * 5
   ) {
     return cachedRequests;
   }
@@ -46,7 +43,6 @@ export function invalidateRequestsCache() {
 export async function fetchRentalRequestsWithDetails(lenderId, { forceRefresh = false } = {}) {
   if (!lenderId) return [];
 
-  // Return fresh cache if available and not forced
   if (
     !forceRefresh &&
     cachedRequests &&
@@ -56,7 +52,6 @@ export async function fetchRentalRequestsWithDetails(lenderId, { forceRefresh = 
     return cachedRequests;
   }
 
-  // Deduplicate concurrent in-flight fetches
   if (inFlightFetch && cachedLenderId === lenderId && !forceRefresh) {
     return inFlightFetch;
   }
@@ -71,7 +66,6 @@ export async function fetchRentalRequestsWithDetails(lenderId, { forceRefresh = 
         return [];
       }
 
-      // Collect unique item IDs and renter IDs to prevent duplicate network calls (e.g. 26 requests -> 4 items)
       const uniqueItemIds = Array.from(
         new Set(lenderRequests.map((r) => r.itemId).filter(Boolean))
       );
@@ -79,7 +73,6 @@ export async function fetchRentalRequestsWithDetails(lenderId, { forceRefresh = 
         new Set(lenderRequests.map((r) => r.renterId).filter(Boolean))
       );
 
-      // Fetch distinct items in parallel with caching
       await Promise.all(
         uniqueItemIds.map(async (itemId) => {
           if (!itemCache.has(itemId)) {
@@ -93,7 +86,6 @@ export async function fetchRentalRequestsWithDetails(lenderId, { forceRefresh = 
         })
       );
 
-      // Fetch distinct renters, reviews, customer histories in parallel with caching
       await Promise.all(
         uniqueRenterIds.map(async (renterId) => {
           const fetchUser = !userCache.has(renterId)
@@ -119,7 +111,6 @@ export async function fetchRentalRequestsWithDetails(lenderId, { forceRefresh = 
         })
       );
 
-      // Stitch resolved data together
       const requestsWithDetails = lenderRequests.map((request) => {
         const item = itemCache.get(request.itemId) || null;
         const borrower = userCache.get(request.renterId) || null;
@@ -150,7 +141,6 @@ export async function fetchRentalRequestsWithDetails(lenderId, { forceRefresh = 
 
 export function preloadRentalRequests(lenderId) {
   if (!lenderId) return;
-  // Non-blocking background trigger
   fetchRentalRequestsWithDetails(lenderId).catch((err) => {
     console.warn("Background preload of rental requests failed:", err);
   });
