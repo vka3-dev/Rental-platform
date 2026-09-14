@@ -2,9 +2,22 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { createBooking, getItemImages, getProductById } from "../services/api";
+import { createBooking, getItemImages, getProductById, getUserById, getReviewsByReviewee } from "../services/api";
 import { supabase } from "../lib/supabase";
 import "./ProductDetailsPage.css";
+
+function StarRating({ value }) {
+  const rounded = Math.round(value);
+  return (
+    <span className="star-rating" aria-label={`${value.toFixed(1)} out of 5 stars`}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <span key={star} className={star <= rounded ? "star filled" : "star"}>
+          ★
+        </span>
+      ))}
+    </span>
+  );
+}
 
 function ProductDetailsPage() {
 
@@ -12,6 +25,8 @@ function ProductDetailsPage() {
   const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
+  const [lender, setLender] = useState(null);
+  const [lenderReviews, setLenderReviews] = useState([]);
   const [rentalHours, setRentalHours] = useState(1);
   const [deliveryMethod, setDeliveryMethod] = useState("SELF_PICKUP");
 
@@ -42,6 +57,16 @@ function ProductDetailsPage() {
           ...data,
           imageUrl: primaryImage?.imageUrl || "",
         });
+
+        if (data.ownerId) {
+          getUserById(data.ownerId)
+            .then(setLender)
+            .catch(() => setLender(null));
+
+          getReviewsByReviewee(data.ownerId)
+            .then((reviews) => setLenderReviews(reviews || []))
+            .catch(() => setLenderReviews([]));
+        }
 
       } catch (error) {
 
@@ -184,6 +209,11 @@ function ProductDetailsPage() {
   const totalAmount =
     rentAmount * Number(rentalHours);
 
+  const lenderAvgRating =
+    lenderReviews.length > 0
+      ? lenderReviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / lenderReviews.length
+      : 0;
+
   return (
 
     <div className="product-details-page">
@@ -277,13 +307,20 @@ function ProductDetailsPage() {
                 Product Owner
               </h3>
 
-              <p>
-
-                {product.lenderName ||
-                  product.ownerName ||
-                  "ShareSpare User"}
-
+              <p className="lender-name-row">
+                {lender?.name || "ShareSpare User"}
+                {lenderReviews.length > 0 && (
+                  <span className="lender-rating-inline">
+                    <StarRating value={lenderAvgRating} />
+                    {lenderAvgRating.toFixed(1)} ({lenderReviews.length}{" "}
+                    {lenderReviews.length === 1 ? "review" : "reviews"})
+                  </span>
+                )}
               </p>
+
+              {lender?.location && (
+                <p className="lender-location">{lender.location}</p>
+              )}
 
             </div>
 

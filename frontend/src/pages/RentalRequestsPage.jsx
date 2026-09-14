@@ -228,6 +228,7 @@ function RentalRequestsPage() {
 			// Optimistic: inject the new review into local state immediately
 			const optimisticReview = newReview || {
 				reviewId: Date.now(),
+				bookingId: reviewModalBooking.bookingId,
 				rating: reviewRating,
 				comment: combinedComment,
 				createdAt: new Date().toISOString(),
@@ -358,6 +359,9 @@ function RentalRequestsPage() {
 					{requests.map((request) => {
 						const ratingInfo = getBorrowerRatingDisplay(request.borrower, request.reviews);
 						const isReviewsOpen = expandedReviews[request.bookingId];
+						const alreadyReviewedBooking = (request.reviews || []).some(
+							(rv) => rv.bookingId === request.bookingId
+						);
 						const borrowerInitial = request.borrower?.name
 							? request.borrower.name.trim()[0].toUpperCase()
 							: "U";
@@ -556,13 +560,20 @@ function RentalRequestsPage() {
 													<IconAlertTriangle size={14} />
 													Report Issue / Damage
 												</button>
-												<button
-													className="workflow-button star-btn"
-													onClick={() => setReviewModalBooking(request)}
-												>
-													<IconStar size={14} />
-													Review Borrower
-												</button>
+												{alreadyReviewedBooking ? (
+													<span className="workflow-button star-btn disabled" title="You already reviewed this borrower">
+														<IconCheck size={14} />
+														Reviewed
+													</span>
+												) : (
+													<button
+														className="workflow-button star-btn"
+														onClick={() => setReviewModalBooking(request)}
+													>
+														<IconStar size={14} />
+														Review Borrower
+													</button>
+												)}
 											</div>
 										</div>
 									)}
@@ -575,13 +586,20 @@ function RentalRequestsPage() {
 												Return Verified & Rental Completed
 											</span>
 											<div style={{ display: "flex", gap: "8px" }}>
-												<button
-													className="workflow-button star-btn sm"
-													onClick={() => setReviewModalBooking(request)}
-												>
-													<IconStar size={13} />
-													Review Borrower
-												</button>
+												{alreadyReviewedBooking ? (
+													<span className="workflow-button star-btn sm disabled" title="You already reviewed this borrower">
+														<IconCheck size={13} />
+														Reviewed
+													</span>
+												) : (
+													<button
+														className="workflow-button star-btn sm"
+														onClick={() => setReviewModalBooking(request)}
+													>
+														<IconStar size={13} />
+														Review Borrower
+													</button>
+												)}
 												<button
 													className="workflow-button danger sm"
 													onClick={() => setDamageModalBooking(request)}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { getBookingsByRenter, createReturn, createReview, getProductById } from "../services/api";
+import { getBookingsByRenter, createReturn, createReview, getProductById, getReviewsByReviewer } from "../services/api";
 import { supabase } from "../lib/supabase";
 import InnovativeToast from "../components/InnovativeNotification";
 import {
@@ -28,6 +28,7 @@ function MyRentalsPage() {
 	const [reviewTags, setReviewTags] = useState([]);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [message, setMessage] = useState("Loading your requests...");
+	const [myReviews, setMyReviews] = useState([]);
 
 	// Optimistically mutate a single booking's fields in local state
 	const optimisticUpdate = (bookingId, patch) => {
@@ -45,6 +46,10 @@ function MyRentalsPage() {
 		}
 		try {
 			const fetched = await getBookingsByRenter(renterId);
+			getReviewsByReviewer(renterId)
+				.then(setMyReviews)
+				.catch(() => setMyReviews([]));
+
 			if (!fetched || fetched.length === 0) {
 				setBookings([]);
 				setMessage("No rental requests found.");
@@ -114,15 +119,18 @@ function MyRentalsPage() {
 				? `[${reviewTags.join(", ")}] ${reviewComment}`
 				: reviewComment;
 
-			await createReview({
+			const savedReview = await createReview({
 				bookingId: reviewModalBooking.bookingId,
 				reviewerId,
 				revieweeId: reviewModalBooking.lenderId,
 				rating: Number(reviewRating),
 				comment: fullComment,
 			});
-			// Optimistic: flag this booking as reviewed so the button can hide/change
-			optimisticUpdate(reviewModalBooking.bookingId, { reviewed: true });
+			// Optimistic: record this booking as reviewed so the button hides immediately
+			setMyReviews((prev) => [
+				...prev.filter((r) => r.bookingId !== reviewModalBooking.bookingId),
+				savedReview || { bookingId: reviewModalBooking.bookingId, rating: reviewRating, comment: fullComment },
+			]);
 			setReviewModalBooking(null);
 			setReviewRating(5);
 			setReviewComment("");
@@ -191,6 +199,10 @@ function MyRentalsPage() {
 								</strong>
 							</div>
 
+							{booking.status === "REJECTED" && booking.rejectionReason && (
+								<p className="booking-rejection-reason">{booking.rejectionReason}</p>
+							)}
+
 							{/* Main Content */}
 							<div className="card-main-content">
 								<div className="item-title-row">
@@ -245,16 +257,23 @@ function MyRentalsPage() {
 
 							{/* Card Actions Bar */}
 							<div className="card-actions-bar">
-								{/* Review Lender Button always accessible if booking confirmed, returned or completed */}
-								{["CONFIRMED", "BOOKED", "RETURNED", "COMPLETED"].includes(booking.status) && (
-									<button
-										className="workflow-button star-btn"
-										onClick={() => setReviewModalBooking(booking)}
-										title="Leave a review for this lender"
-									>
-										<IconStar size={14} />
-										Review Lender
-									</button>
+								{/* Review Lender is only allowed once the rental is returned or completed */}
+								{["RETURNED", "COMPLETED"].includes(booking.status) && (
+									myReviews.some((r) => r.bookingId === booking.bookingId) ? (
+										<span className="workflow-button star-btn disabled" title="You already reviewed this lender">
+											<IconCheck size={14} />
+											Reviewed
+										</span>
+									) : (
+										<button
+											className="workflow-button star-btn"
+											onClick={() => setReviewModalBooking(booking)}
+											title="Leave a review for this lender"
+										>
+											<IconStar size={14} />
+											Review Lender
+										</button>
+									)
 								)}
 
 								{booking.status === "APPROVED" && (

@@ -63,6 +63,7 @@ function Navbar() {
             >
               Requests
             </Link>
+            <Link to="/notifications">Notifications</Link>
           </>
         )}
       </div>
