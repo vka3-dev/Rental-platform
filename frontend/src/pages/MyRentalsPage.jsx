@@ -30,7 +30,6 @@ function MyRentalsPage() {
 	const [message, setMessage] = useState("Loading your requests...");
 	const [myReviews, setMyReviews] = useState([]);
 
-	// Optimistically mutate a single booking's fields in local state
 	const optimisticUpdate = (bookingId, patch) => {
 		setBookings((prev) =>
 			prev.map((b) => (b.bookingId === bookingId ? { ...b, ...patch } : b))
@@ -86,7 +85,6 @@ function MyRentalsPage() {
 				condition: "Good",
 				status: "RETURNED",
 			});
-			// Optimistic: update status immediately so UI reflects change at once
 			optimisticUpdate(returnModalBooking.bookingId, { status: "RETURNED" });
 			setReturnModalBooking(null);
 			setReturnRemarks("");
@@ -95,7 +93,6 @@ function MyRentalsPage() {
 				title: "Return Submitted!",
 				message: "Your return has been recorded. The lender has been notified to verify receipt.",
 			});
-			// Background sync — no await, UI already updated
 			loadBookings();
 		} catch (error) {
 			console.error("Error returning item:", error);
@@ -126,7 +123,6 @@ function MyRentalsPage() {
 				rating: Number(reviewRating),
 				comment: fullComment,
 			});
-			// Optimistic: record this booking as reviewed so the button hides immediately
 			setMyReviews((prev) => [
 				...prev.filter((r) => r.bookingId !== reviewModalBooking.bookingId),
 				savedReview || { bookingId: reviewModalBooking.bookingId, rating: reviewRating, comment: fullComment },
@@ -140,7 +136,6 @@ function MyRentalsPage() {
 				title: "Review Published!",
 				message: "Thank you! Your feedback helps other borrowers in the community.",
 			});
-			// Background sync — no await, UI already updated
 			loadBookings();
 		} catch (error) {
 			console.error("Error submitting review:", error);
@@ -184,7 +179,6 @@ function MyRentalsPage() {
 				<div className="workflow-list">
 					{bookings.map((booking) => (
 						<article className="workflow-card" key={booking.bookingId}>
-							{/* Top Bar */}
 							<div className="card-header-row">
 								<div className="card-header-left">
 									<span className="workflow-label">Booking #{booking.bookingId}</span>
@@ -203,7 +197,6 @@ function MyRentalsPage() {
 								<p className="booking-rejection-reason">{booking.rejectionReason}</p>
 							)}
 
-							{/* Main Content */}
 							<div className="card-main-content">
 								<div className="item-title-row">
 									<h2 className="item-title">
@@ -226,7 +219,6 @@ function MyRentalsPage() {
 									)}
 								</div>
 
-								{/* Schedule Grid */}
 								<div className="schedule-grid">
 									<div className="schedule-block">
 										<span className="schedule-label">
@@ -255,9 +247,7 @@ function MyRentalsPage() {
 								</div>
 							</div>
 
-							{/* Card Actions Bar */}
 							<div className="card-actions-bar">
-								{/* Review Lender is only allowed once the rental is returned or completed */}
 								{["RETURNED", "COMPLETED"].includes(booking.status) && (
 									myReviews.some((r) => r.bookingId === booking.bookingId) ? (
 										<span className="workflow-button star-btn disabled" title="You already reviewed this lender">
@@ -326,7 +316,6 @@ function MyRentalsPage() {
 					))}
 				</div>
 
-				{/* Innovative Return Modal */}
 				{returnModalBooking && (
 					<div
 						className="modal-overlay"
@@ -418,7 +407,6 @@ function MyRentalsPage() {
 					</div>
 				)}
 
-				{/* Innovative Review Modal */}
 				{reviewModalBooking && (
 					<div
 						className="modal-overlay"
@@ -524,7 +512,6 @@ function MyRentalsPage() {
 					</div>
 				)}
 
-				{/* Innovative Toast Notification */}
 				<InnovativeToast
 					notification={toast}
 					onClose={() => setToast(null)}

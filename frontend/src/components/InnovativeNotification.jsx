@@ -58,7 +58,6 @@ export function InnovativeToast({
         >
           <IconX size={14} />
         </button>
-        {/* Animated countdown progress indicator */}
         <div
           className="toast-progress-bar"
           style={{ width: `${progress}%` }}

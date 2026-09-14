@@ -9,8 +9,6 @@
     linear-gradient(135deg, #dceeff 0%, #b9ddff 45%, #e8f4ff 100%);
 }
 
-/* Breadcrumb */
-
 .notifications-breadcrumb {
   max-width: 900px;
   margin: 0 auto;
@@ -38,8 +36,6 @@
   color: #7b91a5;
 }
 
-/* Header */
-
 .notifications-header {
   max-width: 900px;
   margin: 0 auto;
@@ -65,8 +61,6 @@
   line-height: 1.6;
 }
 
-/* Mark all button */
-
 .mark-all-button {
   padding: 9px 16px;
   border: 1px solid rgba(0, 123, 255, 0.2);
@@ -91,23 +85,17 @@
   box-shadow: 0 8px 18px rgba(0, 123, 255, 0.2);
 }
 
-/* Main container */
-
 .notifications-container {
   max-width: 900px;
   margin: 0 auto;
   padding: 10px 20px 60px;
 }
 
-/* Notifications list */
-
 .notifications-list {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
-
-/* Notification card */
 
 .notification-card {
   position: relative;
@@ -132,15 +120,11 @@
   box-shadow: 0 16px 32px rgba(0, 86, 214, 0.15);
 }
 
-/* Unread notification */
-
 .notification-card.unread {
   background: rgba(255, 255, 255, 0.94);
   border-left: 4px solid #007bff;
   box-shadow: 0 12px 30px rgba(0, 123, 255, 0.13);
 }
-
-/* Notification icon */
 
 .notification-icon {
   width: 48px;
@@ -164,8 +148,6 @@
   padding: 5px;
   box-sizing: border-box;
 }
-
-/* Content */
 
 .notification-content {
   flex: 1;
@@ -197,8 +179,6 @@
   font-size: 11px;
 }
 
-/* Unread indicator */
-
 .unread-dot {
   width: 8px;
   height: 8px;
@@ -208,8 +188,6 @@
   border-radius: 50%;
   box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
 }
-
-/* Loading / Error */
 
 .notifications-message {
   padding: 50px 25px;
@@ -236,8 +214,6 @@
 .error-message p {
   color: #7d4a4a;
 }
-
-/* Empty state */
 
 .notifications-empty {
   padding: 60px 25px;
@@ -287,8 +263,6 @@
   line-height: 1.6;
 }
 
-/* Browse button */
-
 .browse-products-button {
   display: inline-block;
   padding: 11px 20px;
@@ -311,8 +285,6 @@
   box-shadow: 0 12px 26px rgba(0, 86, 214, 0.3);
 }
 
-/* Animation */
-
 @keyframes notificationFadeUp {
   from {
     opacity: 0;
@@ -324,8 +296,6 @@
     transform: translateY(0);
   }
 }
-
-/* Tablet */
 
 @media (max-width: 700px) {
   .notifications-header {
@@ -341,8 +311,6 @@
     padding: 16px;
   }
 }
-
-/* Mobile */
 
 @media (max-width: 500px) {
   .notifications-breadcrumb {
@@ -391,8 +359,6 @@
     font-size: 20px;
   }
 }
-
-/* Small mobile */
 
 @media (max-width: 380px) {
   .notifications-header h1 {

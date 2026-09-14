@@ -30,15 +30,12 @@ function AddProductPage() {
 				const user = data.session?.user;
 				if (!user) return;
 
-				// 1. Check user metadata from Supabase signup
 				let ownerCity = user.user_metadata?.location;
 
-				// 2. Check localStorage saved during registration/login
 				if (!ownerCity) {
 					ownerCity = localStorage.getItem("user_city");
 				}
 
-				// 3. Check database user profile
 				if (!ownerCity && user.id) {
 					try {
 						const profile = await getUserById(user.id);
@@ -46,7 +43,6 @@ function AddProductPage() {
 							ownerCity = profile.location;
 						}
 					} catch {
-						// profile fetch ignore
 					}
 				}
 

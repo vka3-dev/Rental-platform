@@ -33,7 +33,6 @@ function LoginPage() {
         return;
       }
 
-      // Fetch user's city from the users DB table (most reliable source)
       const userId = data.session?.user?.id;
       if (userId) {
         try {
@@ -41,12 +40,10 @@ function LoginPage() {
           if (profile?.location && profile.location.trim()) {
             localStorage.setItem("user_city", profile.location.trim());
           } else {
-            // Fallback to user_metadata
             const metaCity = data.session?.user?.user_metadata?.location;
             if (metaCity) localStorage.setItem("user_city", metaCity);
           }
         } catch {
-          // Fallback to user_metadata
           const metaCity = data.session?.user?.user_metadata?.location;
           if (metaCity) localStorage.setItem("user_city", metaCity);
         }

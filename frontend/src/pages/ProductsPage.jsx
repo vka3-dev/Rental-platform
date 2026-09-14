@@ -11,7 +11,6 @@ function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
-  // Synchronously read from localStorage for instant city default before any async call
   const [selectedCity, setSelectedCity] = useState(
     () => localStorage.getItem("user_city") || "All"
   );
@@ -39,7 +38,6 @@ function ProductsPage() {
     "Salem",
   ];
 
-  // Always ensure selectedCity is in the options list to prevent HTML select reverting to "All"
   const cityOptions = Array.from(
     new Set([
       "All",
@@ -52,7 +50,6 @@ function ProductsPage() {
 
   useEffect(() => {
     async function init() {
-      // ---- 1. Resolve user city from DB (authoritative source) ----
       try {
         const { data: sessionData } = await supabase.auth.getSession();
         const user = sessionData.session?.user;
@@ -62,14 +59,12 @@ function ProductsPage() {
             const profile = await getUserById(user.id);
             if (profile?.location && profile.location.trim()) {
               const dbCity = profile.location.trim();
-              // Save to localStorage so next page load is instant
               localStorage.setItem("user_city", dbCity);
               setUserCity(dbCity);
               setSelectedCity(dbCity);
             }
           } catch (profileErr) {
             console.warn("Could not load user profile:", profileErr);
-            // If DB fails, try user metadata
             const metaCity = user?.user_metadata?.location?.trim();
             if (metaCity) {
               setUserCity(metaCity);
@@ -81,7 +76,6 @@ function ProductsPage() {
         console.warn("Could not determine user location:", err);
       }
 
-      // ---- 2. Load products (after city is known so filter works immediately) ----
       try {
         setLoading(true);
 
@@ -129,7 +123,6 @@ function ProductsPage() {
       selectedCity === "All" ||
       product.location?.trim().toLowerCase() === selectedCity.trim().toLowerCase();
 
-    // Only show available products with stock > 0
     const isAvailable =
       product.availability !== false &&
       (product.quantity === undefined ||
@@ -151,7 +144,6 @@ function ProductsPage() {
       </section>
 
       <section className="products-search-section">
-        {/* Compact, Integrated Search & City Filter Bar */}
         <div className="search-and-filter-row">
           <div className="search-box">
             <IconSearch size={17} className="search-icon" />
@@ -200,7 +192,6 @@ function ProductsPage() {
           </div>
         </div>
 
-        {/* Small subtle active location badge */}
         {userCity && (
           <div className="location-context-bar">
             {selectedCity.toLowerCase() === userCity.toLowerCase() ? (

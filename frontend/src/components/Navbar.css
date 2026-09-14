@@ -1,7 +1,3 @@
-/* ==========================================================================
-   Navbar.css - Modern Responsive Navigation Bar
-   ========================================================================== */
-
 .navbar {
   width: 100%;
   min-height: 66px;
@@ -39,7 +35,6 @@
   backdrop-filter: blur(14px);
 }
 
-/* Logo - Left End */
 .navbar-logo {
   display: inline-block;
   text-decoration: none;
@@ -56,7 +51,6 @@
   transform: translateY(-1px);
 }
 
-/* Navigation links - Center */
 .navbar-links {
   display: flex;
   align-items: center;
@@ -85,7 +79,6 @@
   transform: translateY(-1px);
 }
 
-/* Right-End Actions (Login, Sign Up, Logout) */
 .navbar-actions {
   display: flex;
   align-items: center;
@@ -161,7 +154,6 @@
   box-shadow: 0 4px 12px rgba(0, 50, 120, 0.18);
 }
 
-/* Tablet */
 @media (max-width: 900px) {
   .navbar {
     padding: 0 20px;
@@ -197,7 +189,6 @@
   }
 }
 
-/* Mobile */
 @media (max-width: 720px) {
   .navbar {
     min-height: auto;

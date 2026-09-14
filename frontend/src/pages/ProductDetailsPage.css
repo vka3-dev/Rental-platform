@@ -26,10 +26,6 @@
     );
 }
 
-/* =========================
-   BREADCRUMB
-========================= */
-
 .breadcrumb-container {
   max-width: 1100px;
   margin: 0 auto;
@@ -52,19 +48,11 @@
   text-decoration: underline;
 }
 
-/* =========================
-   MAIN CONTAINER
-========================= */
-
 .product-details-container {
   max-width: 1100px;
   margin: 0 auto;
   padding: 25px 20px 70px;
 }
-
-/* =========================
-   PRODUCT DETAILS CARD
-========================= */
 
 .product-details-card {
   display: grid;
@@ -77,10 +65,6 @@
   box-shadow: 0 20px 45px rgba(0, 86, 214, 0.13);
   backdrop-filter: blur(16px);
 }
-
-/* =========================
-   IMAGE
-========================= */
 
 .details-image-section {
   width: 100%;
@@ -107,10 +91,6 @@
   transform: scale(1.015);
   box-shadow: 0 18px 38px rgba(0, 86, 214, 0.16);
 }
-
-/* =========================
-   PRODUCT INFORMATION
-========================= */
 
 .details-info-section {
   display: flex;
@@ -147,10 +127,6 @@
   line-height: 1.7;
 }
 
-/* =========================
-   PRICE
-========================= */
-
 .price-section {
   margin-top: 20px;
   padding: 16px 0;
@@ -177,10 +153,6 @@
   color: #557086;
   font-size: 12px;
 }
-
-/* =========================
-   AVAILABILITY
-========================= */
 
 .availability-section,
 .lender-section {
@@ -210,10 +182,6 @@
 .availability-section p strong {
   color: #173b5a;
 }
-
-/* =========================
-   LENDER
-========================= */
 
 .lender-section {
   background: rgba(255, 255, 255, 0.55);
@@ -264,11 +232,6 @@
   color: #f59e0b;
 }
 
-
-/* =========================
-   RENTAL FORM
-========================= */
-
 .rental-form {
   margin-top: 20px;
   padding-top: 20px;
@@ -316,10 +279,6 @@
   box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
 }
 
-/* =========================
-   TOTAL
-========================= */
-
 .total-section {
   display: flex;
   justify-content: space-between;
@@ -348,10 +307,6 @@
   font-weight: 800;
 }
 
-/* =========================
-   REQUEST ERROR
-========================= */
-
 .request-error {
   margin: 0 0 13px;
   padding: 10px 12px;
@@ -363,10 +318,6 @@
   line-height: 1.5;
   text-align: center;
 }
-
-/* =========================
-   REQUEST BUTTON
-========================= */
 
 .request-button {
   width: 100%;
@@ -411,10 +362,6 @@
   box-shadow: none;
 }
 
-/* =========================
-   BACK TO PRODUCTS
-========================= */
-
 .back-products {
   align-self: center;
   display: inline-block;
@@ -430,10 +377,6 @@
   color: #004085;
   text-decoration: underline;
 }
-
-/* =========================
-   LOADING / ERROR MESSAGE
-========================= */
 
 .details-message {
   max-width: 600px;
@@ -489,10 +432,6 @@
   box-shadow: 0 10px 24px rgba(0, 86, 214, 0.3);
 }
 
-/* =========================
-   TABLET
-========================= */
-
 @media (max-width: 900px) {
   .product-details-container {
     padding: 20px 18px 60px;
@@ -512,10 +451,6 @@
     font-size: 27px;
   }
 }
-
-/* =========================
-   MOBILE
-========================= */
 
 @media (max-width: 768px) {
   .product-details-container {
@@ -545,10 +480,6 @@
     font-size: 25px;
   }
 }
-
-/* =========================
-   SMALL MOBILE
-========================= */
 
 @media (max-width: 450px) {
   .product-details-container {
